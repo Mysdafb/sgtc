@@ -89,7 +89,7 @@ def save_graph_and_metrics(
                     str(graph.graph_cost()),
                     str(graph.graph_entropy()),
                     str(graph.graph_robustness()),
-                    str(graph.LSG()) + "\n",
+                    str(graph.lsg()) + "\n",
                 ]
             )
         )
