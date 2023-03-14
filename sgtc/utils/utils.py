@@ -5,8 +5,8 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Union
 
-import networkx as nx
-import yaml
+import networkx as nx  # type: ignore
+import yaml  # type: ignore
 
 
 __all__ = [
@@ -18,7 +18,7 @@ __all__ = [
 
 
 @dataclasses.dataclass
-class Configuration:
+class Configuration:  # pylint: disable=too-many-instance-attributes
     """stores user configurations."""
 
     nnodes: List[int]

@@ -2,17 +2,17 @@
 
 import dataclasses
 from itertools import combinations
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Iterable, Optional, Union
 
-import matplotlib.pyplot as plt
-import networkx as nx
+import matplotlib.pyplot as plt  # type: ignore
+import networkx as nx  # type: ignore
 import numpy as np
 
 __all__ = ["Graph"]
 
 
 @dataclasses.dataclass
-class GraphParameters:
+class GraphParameters:  # pylint: disable=too-many-instance-attributes
     """Stores main parameters to build a graph."""
 
     mode: str
@@ -52,9 +52,9 @@ class Graph:
             for node in self.params.kcenters:
                 self.__graph.nodes[node][self._TYPE] = self._MACRO
         elif self.params.mbsratio is not None:
-            selected = np.random.choice(
+            selected = np.random.choice(  # type: ignore
                 self.get_nodes(),
-                round(self.params.nnodes * self.params.mbsratio),
+                int(round(self.params.nnodes * self.params.mbsratio)),
                 replace=False,
             )
             for node in selected:
@@ -97,7 +97,7 @@ class Graph:
         center_nodes = {
             node
             for node in range(self.params.nnodes)
-            if self.get_nodes()[node][self._TYPE] == self._MACRO
+            if self.get_nodes()[node][self._TYPE] == self._MACRO  # type: ignore
         }
 
         self._get_complete_graph()
@@ -154,7 +154,9 @@ class Graph:
 
     def create_tsp_file(self) -> None:
         """Saves the graph in tsp format."""
-        mbs: Union[float, List[int]] = self.params.mbsratio or self.params.kcenters
+        mbs: Union[float, List[int], None] = (
+            self.params.mbsratio or self.params.kcenters
+        )
         filename = (
             str(self.params.seed)
             + "_"
@@ -198,10 +200,10 @@ class Graph:
                             concurrence[(path[node_idx_i], path[node_idx_j])] += 1
                         elif (path[node_idx_j], path[node_idx_i]) in concurrence:
                             concurrence[(path[node_idx_j], path[node_idx_i])] += 1
-                        j += 1
+                        node_idx_j += 1
         if plot:
-            plot = plt.figure(figsize=(15.0, 7.0))
-            bars = plot.add_axes([0, 0, 1, 1])
+            figure = plt.figure(figsize=(15.0, 7.0))
+            bars = figure.add_axes([0, 0, 1, 1])
             edges = [str(i) for i in self.get_edges()]
             bars.bar(edges, list(concurrence.values()))
             bars.set_ylabel("Frequency")
@@ -209,15 +211,15 @@ class Graph:
             plt.show()
         return list(concurrence.values())
 
-    def get_adj_matrix(self) -> np.array:
+    def get_adj_matrix(self) -> np.ndarray:
         """Returns the adjacency matrix of the graph."""
         return nx.adjacency_matrix(self.__graph).todense()
 
-    def get_edges(self, data: bool = False) -> object:
+    def get_edges(self, data: bool = False) -> Iterable:
         """Returns a list containing the graph's edges."""
         return self.__graph.edges(data=data)
 
-    def get_nodes(self, data: bool = False) -> object:
+    def get_nodes(self, data: bool = False) -> Iterable:
         """Returns a list containing the graph's nodes."""
         return self.__graph.nodes(data=data)
 
@@ -225,10 +227,10 @@ class Graph:
         """
         Computes the graph's cost defined as the sum of the distance between nodes.
         """
-        c_of_g = 0
+        c_of_g: float = 0.0
         edges = self.__graph.edges()
         for edge in edges:
-            c_of_g += np.linalg.norm(
+            c_of_g += np.linalg.norm(  # type: ignore
                 self.__graph.nodes[edge[0]][self._COORD]
                 - self.__graph.nodes[edge[1]][self._COORD]
             )  # Eq. 1
@@ -295,8 +297,7 @@ class Graph:
         """Returns the number of edges needed to disconnect the grapgh."""
         if self.is_connected():
             return len(nx.minimum_edge_cut(self.__graph))
-        else:
-            return 0
+        return 0
 
     def is_connected(self) -> bool:
         """Checks the connectivity of the graph."""
