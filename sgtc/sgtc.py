@@ -3,7 +3,10 @@
 from typing import cast, Dict, Tuple
 import copy
 from math import exp
+
 import numpy as np
+import tqdm
+
 from .graph import Graph, GraphParameters
 from .utils.utils import Configuration, save_graph_and_metrics
 
@@ -36,7 +39,7 @@ class SGTC:
             str(self.mbs),
         )
         lambda_current = lambda_best = graph.lsg()
-        for iteration in range(self.configs.maxitera):
+        for iteration in tqdm.trange(self.configs.maxitera):
             g_of_i = self._get_uniformly_at_random(graph)
 
             lambda_candidate = g_of_i.lsg()
