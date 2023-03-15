@@ -1,6 +1,6 @@
 """_summary_"""
 
-from typing import cast, Dict, Tuple, Union
+from typing import cast, Dict, Tuple
 import copy
 from math import exp
 import numpy as np
@@ -21,24 +21,23 @@ class SGTC:
 
     def __init__(self, configs: Configuration, save_tsp: bool = False) -> None:
         self.configs = configs
-        self.graph: Union[Graph, None] = None
         self.mbs = self.configs.mbsratio or self.configs.kcenters
         self.save_tsp = save_tsp
 
-    def _engine(self) -> Tuple[float, Graph]:
+    def _engine(self, graph: Graph) -> Tuple[float, Graph]:
         """main process to do optimization."""
         alpha = self.configs.temperature
-        g_best = copy.deepcopy(self.graph)
+        g_best = copy.deepcopy(graph)
         save_graph_and_metrics(
             g_best,
             "initial",
-            str(self.graph.params.seed),  # type: ignore
-            str(self.graph.params.nnodes),  # type: ignore
+            str(graph.params.seed),
+            str(graph.params.nnodes),
             str(self.mbs),
         )
-        lambda_current = lambda_best = self.graph.lsg()  # type: ignore
+        lambda_current = lambda_best = graph.lsg()
         for iteration in range(self.configs.maxitera):
-            g_of_i = self._get_uniformly_at_random()
+            g_of_i = self._get_uniformly_at_random(graph)
 
             lambda_candidate = g_of_i.lsg()
 
@@ -51,48 +50,48 @@ class SGTC:
                 save_graph_and_metrics(
                     g_best,
                     "iter_" + str(iteration),
-                    str(self.graph.params.seed),  # type: ignore
-                    str(self.graph.params.nnodes),  # type: ignore
+                    str(graph.params.seed),
+                    str(graph.params.nnodes),
                     str(self.mbs),
                 )
 
             if differential > 0 or np.random.rand() <= p_accpt:
-                self.graph = copy.deepcopy(g_of_i)
+                graph = copy.deepcopy(g_of_i)
                 lambda_current = lambda_candidate
 
             alpha = self.configs.temperature // (iteration + 1)
         return lambda_best, cast(Graph, g_best)
 
-    def _get_uniformly_at_random(self) -> Graph:
-        """get a neighbor for a given graph."""
-        g_of_i = copy.deepcopy(self.graph)
-        nodes = self.graph.get_nodes()  # type: ignore
-        edges = self.graph.get_edges()  # type: ignore
+    def _get_uniformly_at_random(self, graph: Graph) -> Graph:
+        """returns a neighbor for a given graph."""
+        g_of_i = copy.deepcopy(graph)
+        nodes = graph.get_nodes()
+        edges = graph.get_edges()
         while True:
             node_i, node_j = np.random.choice(nodes, 2, replace=False)  # type: ignore
 
             is_edge_in_graph = (node_i, node_j) in edges
 
             if is_edge_in_graph:
-                g_of_i.remove_edge(node_i, node_j)  # type: ignore
-                return cast(Graph, g_of_i)
+                g_of_i.remove_edge(node_i, node_j)
+                return g_of_i
 
-            is_i_a_mbs = self.graph.get_nodes()[node_i][self._TYPE] == self._MACRO  # type: ignore
-            is_j_a_mbs = self.graph.get_nodes()[node_j][self._TYPE] == self._MACRO  # type: ignore
+            is_i_a_mbs = graph.get_nodes()[node_i][self._TYPE] == self._MACRO  # type: ignore
+            is_j_a_mbs = graph.get_nodes()[node_j][self._TYPE] == self._MACRO  # type: ignore
 
             distance = np.linalg.norm(
-                self.graph.get_nodes()[node_i][self._COORD]  # type: ignore
-                - self.graph.get_nodes()[node_j][self._COORD]  # type: ignore
+                graph.get_nodes()[node_i][self._COORD]  # type: ignore
+                - graph.get_nodes()[node_j][self._COORD]  # type: ignore
             )
 
             if is_i_a_mbs or is_j_a_mbs:
-                if distance <= self.graph.params.mbsradius:  # type: ignore
-                    g_of_i.add_edge(node_i, node_j)  # type: ignore
-                    return g_of_i  # type: ignore
+                if distance <= graph.params.mbsradius:
+                    g_of_i.add_edge(node_i, node_j)
+                    return g_of_i
 
-            if distance <= self.graph.params.scradius:  # type: ignore
-                g_of_i.add_edge(node_i, node_j)  # type: ignore
-                return g_of_i  # type: ignore
+            if distance <= graph.params.scradius:
+                g_of_i.add_edge(node_i, node_j)
+                return g_of_i
             continue
 
     def _run_multi_nodes(self, seed: int) -> Dict[int, float]:
@@ -111,8 +110,8 @@ class SGTC:
                 self.configs.mbsratio,
                 self.configs.kcenters,  # type: ignore
             )
-            self.graph = Graph(params)
-            results[nnodes], _ = self._engine()
+            graph = Graph(params)
+            results[nnodes], _ = self._engine(graph)
         return results
 
     def _run_multi_seed(
