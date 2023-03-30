@@ -30,6 +30,16 @@ class Graph:
 
     _COORD = "coordinates"
     _FULL = "fully"
+
+    _GRAPHOPTIONS = {
+        "font_size": 12,
+        "node_size": 300,
+        "node_color": "blue",
+        "edge_color": "green",
+        "linewidths": 2,
+        "width": 1,
+    }
+
     _MACRO = "mbs"
     _SCELL = "sc"
     _SPECIALMODE = "empty"
@@ -51,6 +61,7 @@ class Graph:
         if self.params.kcenters is not None:
             for node in self.params.kcenters:
                 self.__graph.nodes[node][self._TYPE] = self._MACRO
+
         elif self.params.mbsratio is not None:
             selected = np.random.choice(  # type: ignore
                 self.get_nodes(),
@@ -59,6 +70,7 @@ class Graph:
             )
             for node in selected:
                 self.__graph.nodes[node][self._TYPE] = self._MACRO
+
         else:
             raise RuntimeError("Not MBS ratio or Kcenters defined!")
 
@@ -119,7 +131,13 @@ class Graph:
         for key in cells:
             for value in cells[key]:
                 if value != key:
-                    self.add_edge(key, value)
+                    distance = np.linalg.norm(
+                        self.__graph.nodes[key][self._COORD]
+                        - self.__graph.nodes[value][self._COORD]
+                    )
+
+                    if distance <= self.params.mbsradius:
+                        self.add_edge(key, value)
 
     def _get_complete_graph(self) -> None:
         """create a complete weighted graph."""
@@ -191,15 +209,18 @@ class Graph:
         """
         all_possible_paths = self.find_paths()
         concurrence = dict.fromkeys(self.get_edges(), 0)
+
         for single_node_paths in all_possible_paths.values():
             for path in list(single_node_paths.values())[1:]:
                 for node_idx_i, _ in enumerate(path):
                     node_idx_j = node_idx_i + 1
+
                     while node_idx_j < len(path):
                         if (path[node_idx_i], path[node_idx_j]) in concurrence:
                             concurrence[(path[node_idx_i], path[node_idx_j])] += 1
                         elif (path[node_idx_j], path[node_idx_i]) in concurrence:
                             concurrence[(path[node_idx_j], path[node_idx_i])] += 1
+
                         node_idx_j += 1
         if plot:
             figure = plt.figure(figsize=(15.0, 7.0))
@@ -229,33 +250,40 @@ class Graph:
         """
         c_of_g: float = 0.0
         edges = self.__graph.edges()
+
         for edge in edges:
             c_of_g += np.linalg.norm(  # type: ignore
                 self.__graph.nodes[edge[0]][self._COORD]
                 - self.__graph.nodes[edge[1]][self._COORD]
             )  # Eq. 1
+
         return c_of_g
 
     def graph_diameter(self) -> int:
         """Computes the longest shortest path."""
         d_of_g = 0
         all_possible_paths = self.find_paths()
+
         for source in all_possible_paths:
             for path in all_possible_paths[source].values():
                 if d_of_g < len(path[1:]):
                     d_of_g = len(path[1:])
+
         return d_of_g
 
     def graph_entropy(self) -> float:
         """Computes graph's entropy using edge concurrence."""
         s_of_g = 0
+
         f_of_es = (  # Numerator in Eq. 3
             self.get_edge_concurrence()
         )  # counts the number of shortest paths that include link e, for all e in E
+
         eta = sum(f_of_es)  # Denominator in Eq. 3
         for f_of_e in f_of_es:  # Sumation in Eq. 2
             pr_of_e = f_of_e / eta  # Eq. 3
             s_of_g += pr_of_e * np.log2(pr_of_e)  # Eq. 2
+
         return -s_of_g
 
     def graph_plot(self) -> None:
@@ -266,24 +294,21 @@ class Graph:
         xaxis = []
         yaxis = []
         pos = {}
+
         for node in range(self.params.nnodes):
             xaxis.append(nodes[node][self._COORD][0])
             yaxis.append(nodes[node][self._COORD][1])
             pos[node] = xaxis[node], yaxis[node]
-        options = {
-            "font_size": 12,
-            "node_size": 300,
-            "node_color": "blue",
-            "edge_color": "green",
-            "linewidths": 2,
-            "width": 1,
-        }
+
+        options = self._GRAPHOPTIONS
         nx.draw_networkx(self.__graph, pos, **options)
+
         mbs = [
             i
             for i in range(self.params.nnodes)
             if self.__graph.nodes[i][self._TYPE] == self._MACRO
         ]
+
         nx.draw_networkx_nodes(
             self.__graph,
             pos,
@@ -302,6 +327,32 @@ class Graph:
     def is_connected(self) -> bool:
         """Checks the connectivity of the graph."""
         return nx.is_connected(self.__graph)
+
+    def is_feasible(self) -> bool:
+        """_summary_
+
+        Returns:
+            bool: _description_
+        """
+        edges = self.get_edges()
+
+        for edge in edges:
+            node_i = self.get_nodes()[edge[0]]  # type: ignore
+            node_j = self.get_nodes()[edge[1]]  # type: ignore
+
+            distance = np.linalg.norm(node_i[self._COORD] - node_j[self._COORD])
+
+            is_i_a_mbs = node_i[self._TYPE] == self._MACRO
+            is_j_a_mbs = node_j[self._TYPE] == self._MACRO
+
+            if is_i_a_mbs or is_j_a_mbs:
+                if distance > self.params.mbsradius:
+                    return False
+
+            if distance > self.params.scradius:
+                return False
+
+        return True
 
     def lsg(self) -> float:
         """Computes the laplacian spectral gap of the grapgh."""

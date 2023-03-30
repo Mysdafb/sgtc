@@ -47,7 +47,7 @@ class SGTC:
             differential = lambda_candidate - lambda_current
             p_accpt = round(exp(-differential / alpha), 10)
 
-            if lambda_candidate > lambda_best:
+            if lambda_candidate > lambda_best and g_of_i.is_feasible():
                 lambda_best = lambda_candidate
                 g_best = copy.deepcopy(g_of_i)
                 save_graph_and_metrics(
@@ -70,32 +70,17 @@ class SGTC:
         g_of_i = copy.deepcopy(graph)
         nodes = graph.get_nodes()
         edges = graph.get_edges()
-        while True:
-            node_i, node_j = np.random.choice(nodes, 2, replace=False)  # type: ignore
 
-            is_edge_in_graph = (node_i, node_j) in edges
+        node_i, node_j = np.random.choice(nodes, 2, replace=False)  # type: ignore
 
-            if is_edge_in_graph:
-                g_of_i.remove_edge(node_i, node_j)
-                return g_of_i
+        is_edge_in_graph = (node_i, node_j) in edges
 
-            is_i_a_mbs = graph.get_nodes()[node_i][self._TYPE] == self._MACRO  # type: ignore
-            is_j_a_mbs = graph.get_nodes()[node_j][self._TYPE] == self._MACRO  # type: ignore
+        if is_edge_in_graph:
+            g_of_i.remove_edge(node_i, node_j)
+            return g_of_i
 
-            distance = np.linalg.norm(
-                graph.get_nodes()[node_i][self._COORD]  # type: ignore
-                - graph.get_nodes()[node_j][self._COORD]  # type: ignore
-            )
-
-            if is_i_a_mbs or is_j_a_mbs:
-                if distance <= graph.params.mbsradius:
-                    g_of_i.add_edge(node_i, node_j)
-                    return g_of_i
-
-            if distance <= graph.params.scradius:
-                g_of_i.add_edge(node_i, node_j)
-                return g_of_i
-            continue
+        g_of_i.add_edge(node_i, node_j)
+        return g_of_i
 
     def _run_multi_nodes(self, seed: int) -> Dict[int, float]:
         """
@@ -114,6 +99,7 @@ class SGTC:
                 self.configs.kcenters,  # type: ignore
             )
             graph = Graph(params)
+            graph.create_tsp_file()
             results[nnodes], _ = self._engine(graph)
         return results
 
