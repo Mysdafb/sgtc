@@ -29,6 +29,7 @@ class SGTC:
 
     def _engine(self, graph: Graph) -> Tuple[float, Graph]:
         """main process to do optimization."""
+        print(graph.is_connected(), graph.lsg(), graph.is_feasible())
         alpha = self.configs.temperature
         g_best = copy.deepcopy(graph)
         save_graph_and_metrics(
@@ -62,6 +63,8 @@ class SGTC:
                 graph = copy.deepcopy(g_of_i)
                 lambda_current = lambda_candidate
 
+            print(graph.is_connected(), graph.lsg(), graph.is_feasible())
+
             alpha = self.configs.temperature // (iteration + 1)
         return lambda_best, cast(Graph, g_best)
 
@@ -77,9 +80,10 @@ class SGTC:
 
         if is_edge_in_graph:
             g_of_i.remove_edge(node_i, node_j)
-            return g_of_i
 
-        g_of_i.add_edge(node_i, node_j)
+        else:
+            g_of_i.add_edge(node_i, node_j)
+
         return g_of_i
 
     def _run_multi_nodes(self, seed: int) -> Dict[int, float]:

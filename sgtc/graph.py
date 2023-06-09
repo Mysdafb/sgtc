@@ -334,6 +334,9 @@ class Graph:
         Returns:
             bool: _description_
         """
+        if not self.is_connected():
+            return False
+
         edges = self.get_edges()
 
         for edge in edges:
@@ -349,7 +352,7 @@ class Graph:
                 if distance > self.params.mbsradius:
                     return False
 
-            if distance > self.params.scradius:
+            elif distance > self.params.scradius:
                 return False
 
         return True

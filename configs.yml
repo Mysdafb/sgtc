@@ -5,10 +5,10 @@ configs:
     - 200
   kcenters: null
   mbs_ratio: 0.05
-  mbs_radius: 0.3
-  sc_radius: 0.1
+  mbs_radius: 0.6
+  sc_radius: 0.3
   temperature: 100
-  max_itera: 10000
+  max_itera: 1000
   seeds:
     - 201669930
     - 33534736
@@ -30,5 +30,5 @@ configs:
     - 12256203
     - 57345785
     - 53309469
-  mode: voronoi # could be empty, fully, voronoi
+  mode: fully # could be empty, fully, voronoi
   weight: 1.0
