@@ -74,15 +74,18 @@ class SGTC:
         nodes = graph.get_nodes()
         edges = graph.get_edges()
 
-        node_i, node_j = np.random.choice(nodes, 2, replace=False)  # type: ignore
+        while True:
+            node_i, node_j = np.random.choice(nodes, 2, replace=False)  # type: ignore
 
-        is_edge_in_graph = (node_i, node_j) in edges
+            is_edge_in_graph = (node_i, node_j) in edges
 
-        if is_edge_in_graph:
-            g_of_i.remove_edge(node_i, node_j)
+            if is_edge_in_graph:
+                g_of_i.remove_edge(node_i, node_j)
+                break
 
-        else:
-            g_of_i.add_edge(node_i, node_j)
+            if g_of_i.is_edge_feasible(node_i, node_j):
+                g_of_i.add_edge(node_i, node_j)
+                break
 
         return g_of_i
 

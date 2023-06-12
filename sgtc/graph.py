@@ -2,7 +2,7 @@
 
 import dataclasses
 from itertools import combinations
-from typing import Dict, List, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt  # type: ignore
 import networkx as nx  # type: ignore
@@ -74,6 +74,29 @@ class Graph:
         else:
             raise RuntimeError("Not MBS ratio or Kcenters defined!")
 
+    def _connect_voronoi_centers(
+        self, all_possible_edges_for_cells: List[Tuple[int, int]]
+    ) -> None:
+        for edge in all_possible_edges_for_cells:
+            distance = np.linalg.norm(
+                self.__graph.nodes[edge[0]][self._COORD]
+                - self.__graph.nodes[edge[1]][self._COORD]
+            )
+            if distance <= self.params.mbsradius:
+                self.add_edge(edge[0], edge[1])
+
+    def _connect_voronoi_centers_and_cells(self, cells: Dict[int, Any]) -> None:
+        for key in cells:
+            for value in cells[key]:
+                if value != key:
+                    distance = np.linalg.norm(
+                        self.__graph.nodes[key][self._COORD]
+                        - self.__graph.nodes[value][self._COORD]
+                    )
+
+                    if distance <= self.params.mbsradius:
+                        self.add_edge(key, value)
+
     def _create_graph(self) -> nx.Graph:
         """Creates a graph object with a given number of nodes."""
         graph = nx.Graph()
@@ -87,21 +110,10 @@ class Graph:
         for first in range(self.params.nnodes - 1):
             second = first + 1
 
-            node_i = self.__graph.nodes[first]
             while second < self.params.nnodes:
-                node_j = self.__graph.nodes[second]
+                if self.is_edge_feasible(first, second):
+                    self.add_edge(first, second)
 
-                distance = np.linalg.norm(node_i[self._COORD] - node_j[self._COORD])
-
-                is_i_macro = node_i[self._TYPE] == self._MACRO
-                is_j_macro = node_j[self._TYPE] == self._MACRO
-
-                if is_i_macro or is_j_macro:
-                    if distance <= self.params.mbsradius:
-                        self.add_edge(first, second)
-                else:
-                    if distance <= self.params.scradius:
-                        self.add_edge(first, second)
                 second += 1
 
     def _create_voronoi_graph(self) -> None:
@@ -120,24 +132,9 @@ class Graph:
 
         all_possible_edges_for_cells = list(combinations(list(center_nodes), 2))
 
-        for edge in all_possible_edges_for_cells:
-            distance = np.linalg.norm(
-                self.__graph.nodes[edge[0]][self._COORD]
-                - self.__graph.nodes[edge[1]][self._COORD]
-            )
-            if distance <= self.params.mbsradius:
-                self.add_edge(edge[0], edge[1])
+        self._connect_voronoi_centers(all_possible_edges_for_cells)
 
-        for key in cells:
-            for value in cells[key]:
-                if value != key:
-                    distance = np.linalg.norm(
-                        self.__graph.nodes[key][self._COORD]
-                        - self.__graph.nodes[value][self._COORD]
-                    )
-
-                    if distance <= self.params.mbsradius:
-                        self.add_edge(key, value)
+        self._connect_voronoi_centers_and_cells(cells)
 
     def _get_complete_graph(self) -> None:
         """create a complete weighted graph."""
@@ -328,6 +325,24 @@ class Graph:
         """Checks the connectivity of the graph."""
         return nx.is_connected(self.__graph)
 
+    def is_edge_feasible(self, node_one_id: int, node_two_id: int) -> bool:
+        """Checks edge feasibility"""
+        node_i = self.get_nodes()[node_one_id]  # type: ignore
+        node_j = self.get_nodes()[node_two_id]  # type: ignore
+
+        distance = np.linalg.norm(node_i[self._COORD] - node_j[self._COORD])
+
+        is_i_a_mbs = node_i[self._TYPE] == self._MACRO
+        is_j_a_mbs = node_j[self._TYPE] == self._MACRO
+
+        if is_i_a_mbs or is_j_a_mbs:
+            if distance <= self.params.mbsradius:
+                return True
+        elif distance <= self.params.scradius:
+            return True
+
+        return False
+
     def is_feasible(self) -> bool:
         """_summary_
 
@@ -349,10 +364,10 @@ class Graph:
             is_j_a_mbs = node_j[self._TYPE] == self._MACRO
 
             if is_i_a_mbs or is_j_a_mbs:
-                if distance > self.params.mbsradius:
+                if distance >= self.params.mbsradius:
                     return False
 
-            elif distance > self.params.scradius:
+            elif distance >= self.params.scradius:
                 return False
 
         return True
