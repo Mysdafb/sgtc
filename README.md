@@ -27,5 +27,5 @@ pip install -r requirements.txt
 To run an experiment, define the parameter within the _configs.yml_ file, then run the following command:
 
 ```bash
-python run.py --config-file configs.yml
+python run --config-file configs.yml
 ```
