@@ -29,7 +29,6 @@ class SGTC:
 
     def _engine(self, graph: Graph) -> Tuple[float, Graph]:
         """main process to do optimization."""
-        print(graph.is_connected(), graph.lsg(), graph.is_feasible())
         alpha = self.configs.temperature
         g_best = copy.deepcopy(graph)
         save_graph_and_metrics(
@@ -45,7 +44,7 @@ class SGTC:
 
             lambda_candidate = g_of_i.lsg()
 
-            differential = lambda_candidate - lambda_current
+            differential = lambda_current - lambda_candidate
             p_accpt = round(exp(-differential / alpha), 10)
 
             if lambda_candidate > lambda_best and g_of_i.is_feasible():
@@ -59,13 +58,15 @@ class SGTC:
                     str(self.mbs),
                 )
 
-            if differential > 0 or np.random.rand() <= p_accpt:
+            if differential < 0:
                 graph = copy.deepcopy(g_of_i)
                 lambda_current = lambda_candidate
 
-            print(graph.is_connected(), graph.lsg(), graph.is_feasible())
+            elif np.random.rand() <= p_accpt:
+                graph = copy.deepcopy(g_of_i)
+                lambda_current = lambda_candidate
 
-            alpha = self.configs.temperature // (iteration + 1)
+            alpha = self.configs.temperature / (iteration + 1)
         return lambda_best, cast(Graph, g_best)
 
     def _get_uniformly_at_random(self, graph: Graph) -> Graph:
