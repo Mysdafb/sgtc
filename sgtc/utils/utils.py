@@ -25,7 +25,7 @@ class Configuration:  # pylint: disable=too-many-instance-attributes
     mbsratio: float
     mbsradius: float
     scradius: float
-    temperature: int
+    temperature: float
     maxitera: int
     seeds: List[int]
     mode: str

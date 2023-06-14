@@ -7,7 +7,7 @@ configs:
   mbs_ratio: 0.05
   mbs_radius: 1
   sc_radius: 0.4
-  temperature: 1
+  temperature: 1.0
   max_itera: 10000
   seeds:
     - 201669930
