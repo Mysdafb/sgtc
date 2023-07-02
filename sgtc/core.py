@@ -15,8 +15,10 @@ def main(configs: str) -> None:
 
     if configurations.kcenters is not None:
         run_for_kcenters(configurations)
-    else:
+    elif configurations.mbsratio is not None:
         run(configurations)
+    else:
+        raise RuntimeError("One of kcenters or mbsratio parameters should be defined!")
 
 
 def run(configurations: Configuration, outfile: str = "results.json") -> None:
