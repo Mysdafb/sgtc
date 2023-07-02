@@ -10,6 +10,7 @@ import yaml  # type: ignore
 
 
 __all__ = [
+    "Configuration",
     "load_configurations",
     "read_kcenters",
     "save_graph_and_metrics",
@@ -98,7 +99,7 @@ def save_graph_and_metrics(
     )
 
 
-def write_results(results: Dict[int, Any]) -> None:
+def write_results(results: Dict[int, Any], filename: str) -> None:
     """saves results to a file."""
-    with open("results.json", "w", encoding="utf-8") as fhandle:
+    with open(filename, "w", encoding="utf-8") as fhandle:
         json.dump(results, fhandle)
