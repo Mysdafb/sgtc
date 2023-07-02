@@ -12,6 +12,15 @@ __all__ = ["Graph"]
 
 
 @dataclasses.dataclass
+class AvailableModes:
+    """Stores the available modes to start the graph"""
+
+    fully: str = "fully"
+    empty: str = "empty"
+    voronoi: str = "voronoi"
+
+
+@dataclasses.dataclass
 class GraphParameters:  # pylint: disable=too-many-instance-attributes
     """Stores main parameters to build a graph."""
 
@@ -29,7 +38,6 @@ class Graph:
     """_summary_"""
 
     _COORD = "coordinates"
-    _FULL = "fully"
 
     _GRAPHOPTIONS = {
         "font_size": 12,
@@ -42,9 +50,7 @@ class Graph:
 
     _MACRO = "mbs"
     _SCELL = "sc"
-    _SPECIALMODE = "empty"
     _TYPE = "type"
-    _VORO = "voronoi"
     _WEIGHT = "weight"
 
     def __init__(self, params: GraphParameters) -> None:
@@ -54,7 +60,7 @@ class Graph:
         self.__graph = self._create_graph()
         self._add_mbs()
 
-        if self.params.mode != self._SPECIALMODE:
+        if self.params.mode != AvailableModes.empty:
             self._incorporate_edges()
 
     def _add_mbs(self) -> None:
@@ -156,9 +162,9 @@ class Graph:
 
     def _incorporate_edges(self) -> None:
         """Adds edges based on the mode parameter."""
-        if self.params.mode == self._FULL:
+        if self.params.mode == AvailableModes.fully:
             self._create_fully_connected_graph()
-        elif self.params.mode == self._VORO:
+        elif self.params.mode == AvailableModes.voronoi:
             self._create_voronoi_graph()
         else:
             raise NotImplementedError(f"{self.params.mode} mode is nor supported!")
