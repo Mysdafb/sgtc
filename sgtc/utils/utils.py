@@ -34,32 +34,38 @@ class Configuration:  # pylint: disable=too-many-instance-attributes
     kcenters: Union[str, List[int], None]
 
 
+@dataclasses.dataclass(frozen=True)
+class Parameters:
+    """Stores the names of the required parameters"""
+
+    kcenters = "kcenters"
+    main = "configs"
+    maxi = "max_itera"
+    mbsradius = "mbs_radius"
+    mbsratio = "mbs_ratio"
+    mode = "mode"
+    nnodes = "nnodes"
+    seeds = "seeds"
+    scradius = "sc_radius"
+    temp = "temperature"
+    weight = "weight"
+
+
 def load_configurations(config_file: str) -> Configuration:
     """loads user configurations."""
-    _main = "configs"
-    _nnodes = "nnodes"
-    _mbsratio = "mbs_ratio"
-    _mbsradius = "mbs_radius"
-    _scradius = "sc_radius"
-    _temp = "temperature"
-    _maxi = "max_itera"
-    _seeds = "seeds"
-    _mode = "mode"
-    _weight = "weight"
-    _kcenters = "kcenters"
     with open(config_file, "r", encoding="utf-8") as filehandle:
-        configs = yaml.load(filehandle, Loader=yaml.loader.FullLoader)[_main]
+        configs = yaml.load(filehandle, Loader=yaml.loader.FullLoader)[Parameters.main]
     parser = Configuration(
-        nnodes=configs[_nnodes],
-        mbsratio=configs[_mbsratio],
-        mbsradius=configs[_mbsradius],
-        scradius=configs[_scradius],
-        temperature=configs[_temp],
-        maxitera=configs[_maxi],
-        seeds=configs[_seeds],
-        mode=configs[_mode],
-        weight=configs[_weight],
-        kcenters=configs[_kcenters],
+        nnodes=configs[Parameters.nnodes],
+        mbsratio=configs[Parameters.mbsratio],
+        mbsradius=configs[Parameters.mbsradius],
+        scradius=configs[Parameters.scradius],
+        temperature=configs[Parameters.temp],
+        maxitera=configs[Parameters.maxi],
+        seeds=configs[Parameters.seeds],
+        mode=configs[Parameters.mode],
+        weight=configs[Parameters.weight],
+        kcenters=configs[Parameters.kcenters],
     )
     return parser
 
