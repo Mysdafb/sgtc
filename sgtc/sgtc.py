@@ -63,11 +63,7 @@ class SGTC:
                     str(self.mbs),
                 )
 
-            if differential < 0:
-                graph = copy.deepcopy(g_of_i)
-                lambda_current = lambda_candidate
-
-            elif np.random.rand() <= p_accpt:
+            if differential < 0 or np.random.rand() <= p_accpt:
                 graph = copy.deepcopy(g_of_i)
                 lambda_current = lambda_candidate
 
