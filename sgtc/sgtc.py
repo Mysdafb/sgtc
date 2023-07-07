@@ -38,6 +38,7 @@ class SGTC:
             str(graph.params.nnodes),
             str(self.mbs),
         )
+
         lambda_current = lambda_best = graph.lsg()
         for iteration in tqdm.trange(self.configs.maxitera):
             g_of_i = self._get_uniformly_at_random(graph)
@@ -45,7 +46,11 @@ class SGTC:
             lambda_candidate = g_of_i.lsg()
 
             differential = lambda_current - lambda_candidate
-            p_accpt = round(exp(-differential / alpha), 10)
+            quotient = differential / alpha
+            if quotient >= 1e-20 or quotient == 0:
+                p_accpt = round(exp(-quotient), 10)
+            else:
+                p_accpt = 0
 
             if lambda_candidate > lambda_best and g_of_i.is_feasible():
                 lambda_best = lambda_candidate

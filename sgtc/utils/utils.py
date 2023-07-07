@@ -5,7 +5,6 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Union
 
-import networkx as nx  # type: ignore
 import yaml  # type: ignore
 
 
@@ -87,7 +86,7 @@ def save_graph_and_metrics(
     """
     saves a graph with its corresponding metrics in the current working directory.
     """
-    filename = "./" + seed + "_" + n_nodes + "_" + mbs + "_metrics.txt"
+    filename = "./" + seed + "_" + n_nodes + "_" + mbs + fname + "_metrics.txt"
     with open(file=filename, mode="a", encoding="utf-8") as fhandle:
         fhandle.write(
             ",".join(
@@ -100,9 +99,9 @@ def save_graph_and_metrics(
                 ]
             )
         )
-    nx.write_gpickle(
-        graph, "./" + seed + "_" + n_nodes + "_" + mbs + "_" + fname + ".gpickle"
-    )
+    # nx.write_gpickle(
+    #     graph, "./" + seed + "_" + n_nodes + "_" + mbs + "_" + fname + ".gpickle"
+    # )
 
 
 def write_results(results: Dict[int, Any], filename: str) -> None:
