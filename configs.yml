@@ -3,14 +3,14 @@ configs:
     - 100
     # - 150
     # - 200
-  kcenters: null
+  kcenters: /home/sergio/Documents/sgtc/Best_k-centers_20seeds/5_percentage/100_nodes
   mbs_ratio: 0.05
   mbs_radius: 1
   sc_radius: 0.4
   temperature: 1.0
   max_itera: 10000
   seeds:
-    - 201669930
+    # - 201669930
     # - 33534736
     # - 253608312
     # - 9111620
