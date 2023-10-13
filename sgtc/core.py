@@ -48,6 +48,7 @@ def run_for_kcenters(configurations: Configuration) -> None:
     list_of_kcenters_files = os.listdir(kcenters)
     for kfile in list_of_kcenters_files:
         configurations.kcenters = read_kcenters(os.path.join(kcenters, kfile))
+        configurations.seeds = [int(kfile.split("_")[1])]
 
         out_file = kfile.split(".", maxsplit=1)[0] + "_results.json"
         run(configurations, out_file)

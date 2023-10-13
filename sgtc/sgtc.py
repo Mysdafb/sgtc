@@ -57,7 +57,7 @@ class SGTC:
                 g_best = copy.deepcopy(g_of_i)
                 save_graph_and_metrics(
                     g_best,
-                    "iter_" + str(iteration),
+                    "iters",
                     str(graph.params.seed),
                     str(graph.params.nnodes),
                     str(self.mbs),
