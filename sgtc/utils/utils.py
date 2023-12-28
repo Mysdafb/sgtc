@@ -76,7 +76,8 @@ def read_kcenters(filename: str) -> List[int]:
     """
     with open(file=filename, mode="r", encoding="utf-8") as fhandle:
         fhandle.readline()
-        kcenters = fhandle.readline().split(" ")[:-1]
+        kcenters = fhandle.readline().split("	")[:-1]
+
     return list(map(int, kcenters))
 
 
@@ -99,9 +100,6 @@ def save_graph_and_metrics(
                 ]
             )
         )
-    # nx.write_gpickle(
-    #     graph, "./" + seed + "_" + n_nodes + "_" + mbs + "_" + fname + ".gpickle"
-    # )
 
 
 def write_results(results: Dict[int, Any], filename: str) -> None:
