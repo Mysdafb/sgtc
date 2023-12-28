@@ -44,8 +44,7 @@ class SGTC:
             g_of_i = self._get_uniformly_at_random(graph)
 
             lambda_candidate = g_of_i.lsg()
-
-            differential = lambda_current - lambda_candidate
+            differential = lambda_candidate - lambda_current
             quotient = differential / alpha
             if quotient >= 1e-20 or quotient == 0:
                 p_accpt = round(exp(-quotient), 10)
@@ -62,6 +61,9 @@ class SGTC:
                     str(graph.params.nnodes),
                     str(self.mbs),
                 )
+            if differential > 0:
+                graph = copy.deepcopy(g_of_i)
+                lambda_current = lambda_candidate
 
             if differential < 0 or np.random.rand() <= p_accpt:
                 graph = copy.deepcopy(g_of_i)
